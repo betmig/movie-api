@@ -1,0 +1,450 @@
+openapi: 3.0.3
+info:
+  title: Movie Database API
+  version: 1.0.0
+  description: A comprehensive REST API for managing a movie database with full CRUD
+    operations, advanced filtering, and top-rated movie endpoints.
+  contact:
+    name: Movie API Support
+    email: admin@example.com
+  license:
+    name: MIT License
+paths:
+  /api/movies/:
+    get:
+      operationId: movies_list
+      description: Retrieve a paginated list of all movies in the database. Returns
+        20 movies per page.
+      summary: List all movies
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - Movies
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMovieList'
+          description: ''
+    post:
+      operationId: movies_create
+      description: Add a new movie to the database. All fields except budget are required.
+      summary: Create new movie
+      tags:
+      - Movies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieRequest'
+            examples:
+              CreateActionMovie:
+                value:
+                  title: Inception
+                  director: Christopher Nolan
+                  genre: Sci-Fi
+                  year: 2010
+                  rating: 8.8
+                  budget: 160000000
+                summary: Create Action Movie
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MovieRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MovieRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+          description: ''
+  /api/movies/top-rated/:
+    get:
+      operationId: movies_top_rated_retrieve
+      description: Retrieve movies filtered by rating and optionally by genre and
+        year. Results are ordered by rating (descending), then year (descending).
+      summary: Get top-rated movies
+      parameters:
+      - in: query
+        name: genre
+        schema:
+          type: string
+        description: Filter by genre (case-insensitive)
+        examples:
+          Action:
+            value: Action
+          Drama:
+            value: Drama
+          Sci-Fi:
+            value: Sci-Fi
+      - in: query
+        name: min_rating
+        schema:
+          type: number
+          format: float
+          default: 8.0
+        description: Minimum rating threshold (0-10)
+      - in: query
+        name: year
+        schema:
+          type: integer
+        description: Filter by release year
+      tags:
+      - Movies
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+              examples:
+                TopRatedResponse:
+                  value:
+                    count: 5
+                    next: null
+                    previous: null
+                    results:
+                    - id: 1
+                      title: The Shawshank Redemption
+                      director: Frank Darabont
+                      genre: Drama
+                      year: 1994
+                      rating: 9.3
+                      budget: 25000000
+                      created_at: '2026-01-03T12:00:00Z'
+                  summary: Top Rated Response
+          description: ''
+  /api/movies/{id}/:
+    patch:
+      operationId: movies_partial_update
+      description: Update one or more fields of an existing movie. Only provided fields
+        will be updated.
+      summary: Partial movie update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Movie.
+        required: true
+      tags:
+      - Movies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMovieRequest'
+            examples:
+              UpdateRating:
+                value:
+                  rating: 9.5
+                summary: Update Rating
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMovieRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMovieRequest'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+          description: ''
+    delete:
+      operationId: movies_destroy
+      description: Remove a movie from the database permanently.
+      summary: Delete movie
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Movie.
+        required: true
+      tags:
+      - Movies
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+    put:
+      operationId: movies_update
+      description: Update all fields of an existing movie. All required fields must
+        be provided.
+      summary: Update entire movie
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Movie.
+        required: true
+      tags:
+      - Movies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MovieRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MovieRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+          description: ''
+    get:
+      operationId: movies_retrieve
+      description: Retrieve detailed information about a specific movie.
+      summary: Get movie by ID
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Movie.
+        required: true
+      tags:
+      - Movies
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+          description: ''
+components:
+  schemas:
+    Movie:
+      type: object
+      description: |-
+        Serializer for Movie model with field validation.
+
+        Validates:
+            - Rating: 0-10 range
+            - Year: 1800-2100 range
+            - Required fields: title, director, genre
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          description: Movie title
+          maxLength: 200
+        director:
+          type: string
+          description: Director name
+          maxLength: 100
+        genre:
+          type: string
+          description: Movie genre
+          maxLength: 100
+        year:
+          type: integer
+          maximum: 2100
+          minimum: 1800
+          description: Release year (1800-2100)
+        rating:
+          type: number
+          format: double
+          maximum: 10.0
+          minimum: 0.0
+          description: Movie rating (0-10)
+        budget:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+          description: Production budget (optional)
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Record creation timestamp
+      required:
+      - created_at
+      - director
+      - genre
+      - id
+      - rating
+      - title
+      - year
+    MovieRequest:
+      type: object
+      description: |-
+        Serializer for Movie model with field validation.
+
+        Validates:
+            - Rating: 0-10 range
+            - Year: 1800-2100 range
+            - Required fields: title, director, genre
+      properties:
+        title:
+          type: string
+          minLength: 1
+          description: Movie title
+          maxLength: 200
+        director:
+          type: string
+          minLength: 1
+          description: Director name
+          maxLength: 100
+        genre:
+          type: string
+          minLength: 1
+          description: Movie genre
+          maxLength: 100
+        year:
+          type: integer
+          maximum: 2100
+          minimum: 1800
+          description: Release year (1800-2100)
+        rating:
+          type: number
+          format: double
+          maximum: 10.0
+          minimum: 0.0
+          description: Movie rating (0-10)
+        budget:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+          description: Production budget (optional)
+      required:
+      - director
+      - genre
+      - rating
+      - title
+      - year
+    PaginatedMovieList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Movie'
+    PatchedMovieRequest:
+      type: object
+      description: |-
+        Serializer for Movie model with field validation.
+
+        Validates:
+            - Rating: 0-10 range
+            - Year: 1800-2100 range
+            - Required fields: title, director, genre
+      properties:
+        title:
+          type: string
+          minLength: 1
+          description: Movie title
+          maxLength: 200
+        director:
+          type: string
+          minLength: 1
+          description: Director name
+          maxLength: 100
+        genre:
+          type: string
+          minLength: 1
+          description: Movie genre
+          maxLength: 100
+        year:
+          type: integer
+          maximum: 2100
+          minimum: 1800
+          description: Release year (1800-2100)
+        rating:
+          type: number
+          format: double
+          maximum: 10.0
+          minimum: 0.0
+          description: Movie rating (0-10)
+        budget:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+          description: Production budget (optional)
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+tags:
+- name: Movies
+  description: Movie CRUD operations and queries

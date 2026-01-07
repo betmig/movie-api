@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  movie-api:
+    build: .
+    container_name: movie-api
+    restart: unless-stopped
+    volumes:
+      - ./db.sqlite3:/app/db.sqlite3
+      - static_volume:/app/staticfiles
+    environment:
+      - DJANGO_SETTINGS_MODULE=movie_api.settings
+      - PYTHONUNBUFFERED=1
+    networks:
+      - npm_network
+
+volumes:
+  static_volume:
+
+networks:
+  npm_network:
+    external: true
