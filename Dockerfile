@@ -13,6 +13,6 @@ COPY . .
 
 RUN python manage.py collectstatic --noinput
 
-EXPOSE 8000
+EXPOSE 80
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "movie_api.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "--workers", "3", "--timeout", "120", "movie_api.wsgi:application"]
